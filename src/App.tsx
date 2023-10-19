@@ -1,18 +1,49 @@
-import React from 'react';
-// import carsFromServer from './api/cars';
-// import colorsFromServer from './api/colors';
-
-// 1. Render car with color
-// 2. Add ability to filter car by brand name
-// 3. Add ability to filter car by color
+import React, { useState } from 'react';
+import carsFromServer from './api/cars';
+import colorsFromServer from './api/colors';
 
 export const App: React.FC = () => {
+  const [searchValue, setSearchValue] = useState('');
+  const [chooseColor = colorsFromServer, setChooseColor] = useState('');
+  let displayedCars = carsFromServer
+    .filter(car => car.brand.toLowerCase()
+      .trim().includes(searchValue.toLowerCase()));
+
+  if (chooseColor) {
+    displayedCars = carsFromServer
+      .filter(car => car.brand.toLowerCase()
+        .trim().includes(searchValue.toLowerCase())
+        && car.colorId === +chooseColor);
+  }
+
+  function handleOnClick(value: string) {
+    setSearchValue(value);
+  }
+
+  function handleColor(value: string) {
+    setChooseColor(value);
+  }
+
   return (
     <div>
-      <input type="search" placeholder="Find by car brand" />
+      <input
+        type="search"
+        placeholder="Find by car brand"
+        onChange={(event) => {
+          handleOnClick(event.target.value);
+        }}
+      />
 
-      <select>
-        <option>Chose a color</option>
+      <select
+        onChange={(event) => {
+          handleColor(event.target.value);
+        }}
+      >
+        {colorsFromServer.map(color => (
+          <option key={color.id} value={color.id}>
+            {color.name}
+          </option>
+        ))}
       </select>
 
       <table>
@@ -25,24 +56,21 @@ export const App: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>Ferarri</td>
-            <td style={{ color: 'red' }}>Red</td>
-            <td>500</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>Opel</td>
-            <td style={{ color: 'white' }}>White</td>
-            <td>300</td>
-          </tr>
-          <tr>
-            <td>3</td>
-            <td>Audi</td>
-            <td style={{ color: 'black' }}>Black</td>
-            <td>300</td>
-          </tr>
+          {
+            displayedCars.map(car => {
+              const carColor = colorsFromServer
+                .find(color => color.id === car.colorId)?.name;
+
+              return (
+                <tr>
+                  <td>{car.id}</td>
+                  <td>{car.brand}</td>
+                  <td style={{ textTransform: 'capitalize', color: `${carColor}` }}>{carColor}</td>
+                  <td>{car.rentPrice}</td>
+                </tr>
+              );
+            })
+          }
         </tbody>
       </table>
     </div>
